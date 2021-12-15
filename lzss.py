@@ -1,6 +1,6 @@
 import codecs
 import re
-
+import sys
 def compress(filename):
     f = codecs.open(filename,"r","utf-8").read()
     buffer= ""
@@ -13,7 +13,7 @@ def compress(filename):
             i+=1
         else:
             if len(buffer)> (len(str(len(buffer)))+len(str(output.find(buffer)))+3):
-                output += "("+str(output.find(buffer))+","+ str(len(buffer))+")"
+                output += "("+output.find(buffer)+","+ len(buffer)+")"
             else:
                 output += buffer+character
                 i+=1
@@ -36,5 +36,9 @@ def decompress(filename):
     file.write(output)
     file.close() 
 
-compress("files\\informatyczny.txt")
-decompress("compressed.txt")
+
+if __name__ == "__main__":
+    filename = (sys.argv[1])
+    compress(filename)
+    decompress("compressed.txt")
+
