@@ -1,0 +1,99 @@
+Rozszerzenia zgodne z wzorcem dla języka C# umożliwiają korzystanie z wielu zalet typów danych algebraicznych i dopasowywanie wzorców z języków funkcjonalnych, ale w sposób, który zapewnia bezproblemowe integrację z zachowaniem języka bazowego. Podstawowe funkcje to: typy rekordów, które są typami, których znaczenie semantyczne jest opisane przez kształt danych; i dopasowywanie do wzorca, które jest nowym formularzem wyrażenia, który umożliwia bardzo zwięzłe dekompozycję tych typów danych. Elementy tego podejścia są inspirowane powiązanymi funkcjami w językach programowania F # i Scala.
+Wyrażenie is
+isOperator jest rozszerzony w celu przetestowania wyrażenia względem wzorca.
+antlr
+
+Kopiuj
+relational_expression
+    : relational_expression 'is' pattern
+    ;
+Ta forma relational_expression jest uzupełnieniem istniejących formularzy w specyfikacji języka C#. Jest to błąd czasu kompilacji, jeśli relational_expression po lewej stronie is tokenu nie wyznaczy wartości lub nie ma typu.
+Każdy Identyfikator wzorca wprowadza nową zmienną lokalną, która jest ostatecznie przypisana po is operatorze true (tj. jest ona przypisywana w nieskończoność, gdy ma wartość true).
+Uwaga: w ramach i constant_pattern istnieje technicznie niejednoznaczność między is-expression typu a i, z których każda może być prawidłową analizą kwalifikowanego identyfikatora. Staramy się powiązać ją z typem w celu zapewnienia zgodności z poprzednimi wersjami języka; tylko wtedy, gdy to się nie powiedzie, firma Microsoft rozwiązuje ten problem, tak jak w przypadku innych kontekstów, do pierwszego znalezionego (który musi być stałą lub typem). Ta niejednoznaczność jest obecna tylko po prawej stronie is wyrażenia.
+Wzorce
+Wzorce są używane w is operatorze i w switch_statement do wyrażania kształtu danych, z których dane przychodzące mają być porównywane. Wzorce mogą być cykliczne, aby części danych mogły być dopasowane do wzorców podrzędnych.
+antlr
+
+Kopiuj
+pattern
+    : declaration_pattern
+    | constant_pattern
+    | var_pattern
+    ;
+
+declaration_pattern
+    : type simple_designation
+    ;
+
+constant_pattern
+    : shift_expression
+    ;
+
+var_pattern
+    : 'var' simple_designation
+    ;
+Uwaga: w ramach i constant_pattern istnieje technicznie niejednoznaczność między is-expression typu a i, z których każda może być prawidłową analizą kwalifikowanego identyfikatora. Staramy się powiązać ją z typem w celu zapewnienia zgodności z poprzednimi wersjami języka; tylko wtedy, gdy to się nie powiedzie, firma Microsoft rozwiązuje ten problem, tak jak w przypadku innych kontekstów, do pierwszego znalezionego (który musi być stałą lub typem). Ta niejednoznaczność jest obecna tylko po prawej stronie is wyrażenia.
+Wzorzec deklaracji
+Declaration_pattern obu testuje, że wyrażenie jest danego typu i rzutuje je na ten typ, jeśli test zakończy się pomyślnie. Jeśli simple_designation jest identyfikatorem, wprowadza zmienną lokalną danego typu o podanym identyfikatorze. Ta zmienna lokalna jest ostatecznie przypisana , gdy wynik operacji dopasowania do wzorca ma wartość true.
+antlr
+
+Kopiuj
+declaration_pattern
+    : type simple_designation
+    ;
+Semantyka środowiska uruchomieniowego tego wyrażenia sprawdza typ środowiska uruchomieniowego operandu relational_expression po lewej stronie względem typu we wzorcu. Jeśli jest to typ środowiska uruchomieniowego (lub niektóre podtypu), wynik is operator jest true . Deklaruje nową zmienną lokalną o nazwie, która ma przypisaną wartość operandu po lewej stronie, gdy wynik jest true .
+Niektóre kombinacje typu statycznego po lewej stronie i danego typu są uznawane za niezgodne i powodują błąd czasu kompilacji. Wartość typu statycznego E jest uznawana za wzorzec zgodną z typem, T Jeśli istnieje konwersja tożsamości, niejawna konwersja odwołania, konwersja z opakowania, jawna konwersja odwołania lub odpakowywanie konwersji z E do T . Jest to błąd czasu kompilacji, jeśli wyrażenie typu E nie jest zgodne ze wzorcem typu w wzorcu typów, z którym jest on dopasowywany.
+Uwaga: w języku C# 7,1 możemy to umożliwić operacji dopasowania do wzorca, jeśli typ danych wejściowych lub typ T jest typem otwartym. Ten akapit jest zastępowany przez następujące elementy:
+Niektóre kombinacje typu statycznego po lewej stronie i danego typu są uznawane za niezgodne i powodują błąd czasu kompilacji. Wartość typu statycznego E jest określana jako wzorzec zgodny z typem, T Jeśli istnieje konwersja tożsamości, niejawna konwersja odwołania, konwersja z opakowania, jawna konwersja odwołań lub konwersja rozpakowywania z do lub jeśli albo E T E T jest typu otwartego. Jest to błąd czasu kompilacji, jeśli wyrażenie typu E nie jest zgodne ze wzorcem typu w wzorcu typów, z którym jest on dopasowywany.
+Wzorzec deklaracji jest przydatny do wykonywania testów typu w czasie wykonywania typów referencyjnych i zastępuje idiom
+C#
+
+Kopiuj
+var v = expr as Type;
+if (v != null) { // code using v }
+O nieco bardziej zwięzły
+C#
+
+Kopiuj
+if (expr is Type v) { // code using v }
+Jeśli Typ jest typem wartości null, występuje błąd.
+Wzorzec deklaracji może służyć do testowania wartości typów dopuszczających wartość null: wartość typu Nullable<T> (lub opakowaną T ) dopasowuje wzorzec typu T2 id , jeśli wartość jest inna niż null i typ T2 jest T lub jakiś typ podstawowy lub interfejs T . Na przykład w fragmencie kodu
+C#
+
+Kopiuj
+int? x = 3;
+if (x is int v) { // code using v }
+Warunek if instrukcji jest true w czasie wykonywania, a zmienna v przechowuje wartość 3 typu int wewnątrz bloku.
+Wzorzec stałej
+antlr
+
+Kopiuj
+constant_pattern
+    : shift_expression
+    ;
+Stały wzorzec testuje wartość wyrażenia w stosunku do wartości stałej. Stała może być dowolnym wyrażeniem stałym, takim jak literał, nazwa zadeklarowanej const zmiennej lub stała wyliczenia lub typeof wyrażenie.
+Jeśli zarówno e , jak i c są typami całkowitymi, wzorzec jest uznawany za dopasowany, jeśli wynik wyrażenia e == c jest true .
+W przeciwnym razie wzorzec jest uznawany za pasujący, jeśli object.Equals(e, c) zwraca true . W takim przypadku jest to błąd czasu kompilacji, jeśli typ statyczny e nie jest zgodny ze wzorcem typu stałej.
+Wzorzec wariancji
+antlr
+
+Kopiuj
+var_pattern
+    : 'var' simple_designation
+    ;
+Wyrażenie e pasuje do var_pattern zawsze. Inaczej mówiąc, dopasowanie do wzorca var zawsze powiedzie się. Jeśli simple_designation jest identyfikatorem, wówczas w czasie wykonywania wartość e jest powiązana z nowo wprowadzoną zmienną lokalną. Typem zmiennej lokalnej jest typ statyczny e.
+Jeśli nazwa var wiąże się z typem, występuje błąd.
+Switch, instrukcja
+switchInstrukcja zostanie rozszerzona, aby wybrać do wykonania pierwszy blok ze skojarzonym wzorcem zgodnym z wyrażeniem Switch.
+antlr
+
+Kopiuj
+switch_label
+    : 'case' complex_pattern case_guard? ':'
+    | 'case' constant_expression case_guard? ':'
+    | 'default' ':'
+    ;
+
+case_guard
+    : 'when' expression
+    ;

@@ -127,3 +127,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+/compressed.txt
+/decompressed.txt
