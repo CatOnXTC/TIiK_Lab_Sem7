@@ -2,6 +2,7 @@ import codecs
 from ctypes import BigEndianStructure
 import re
 import encodings
+import time
 
 def add_to_dictionary(dictionary, to_add):
     if(len(dictionary + to_add)>4095):
@@ -56,7 +57,6 @@ def compress(filename):
             dictionary = add_to_dictionary(dictionary,character)
 
     file.close()
-    f.close()
 
 
 def decompress(filename):
@@ -88,5 +88,11 @@ def decompress(filename):
     f.close() 
 
 
-#compress("literacki_pl.txt")
+start = int(time.time_ns() / 1000)
+compress("files//literacki_pl.txt")
+stop = int(time.time_ns() / 1000)
+print(stop-start)
+start = int(time.time_ns() / 1000)
 decompress("compressed.txt")
+stop = int(time.time_ns() / 1000)
+print(stop-start)
